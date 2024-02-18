@@ -1,122 +1,100 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using jeu_du_morpion;
 
-bool inGame = true;
-string player1 = "";
-string player2 = "";
-int positionRowSymbolX = 0;
-int positionColSymbolX = 0;
-int positionRowSymbolO = 0;
-int positionColSymbolO = 0;
-char player1Symbol = 'X';
-char player2Symbol = 'O';
-
-char[,] boardGame =
-    {
-    {'.', '.', '.' },
-    {'.', '.', '.' },
-    {'.', '.', '.' }
-};
-
-Console.WriteLine("Joueur 1, entrez votre prénom :");
-player1 = Console.ReadLine();
-
-Console.WriteLine("Joueur 2, entrez votre prénom :");
-player2 = Console.ReadLine();
-
-Console.Clear();
-
-Console.WriteLine($"{player1} vous jouerez avec les {player1Symbol}");
-Console.WriteLine($"{player2} vous jouerez avec les {player2Symbol}");
-
-
-
-
-while (inGame)
+internal class Program
 {
-    DisplayBoard(boardGame);
-    Console.WriteLine();
-    PlayerTurn(player1, positionRowSymbolX, positionColSymbolX, player1Symbol);
-    if (CheckForWin(player1Symbol))
+    private static void Main(string[] args)
     {
-        Console.WriteLine($"\nBravo {player1} vous avez gagné !!!");
-        break;
+        bool replay = true;
+
+        while (replay)
+        {
+            PlayingGame();
+
+            Console.WriteLine("Voulez vous jouer une nouvelle partie ? oui / non ?");
+            string userAnswer = Console.ReadLine().ToLower();
+            replay = (userAnswer == "oui");
+            Console.Clear();
+        }
+    }
+    public static void PlayingGame()
+    {
+
+
+        Console.WriteLine("Joueur 1, entrez votre prénom :");
+        Player player1 = new Player(Console.ReadLine(), 'X');
+
+        Console.WriteLine("Joueur 2, entrez votre prénom :");
+        Player player2 = new Player(Console.ReadLine(), 'O');
+
+        Grid gameGrid = new Grid();
+
+        Console.Clear();
+
+        Console.WriteLine($"{player1} vous jouerez avec les {player1.Symbol}");
+        Console.WriteLine($"{player2} vous jouerez avec les {player2.Symbol}");
+
+
+
+
+        while (true)
+        {
+            gameGrid.DisplayBoard();
+
+            Console.WriteLine();
+
+            PlayerTurn(player1, gameGrid);
+            if (gameGrid.CheckForWin(player1.Symbol))
+            {
+                player1.AnnounceWinner();
+                break;
+            }
+            else if (gameGrid.DrawGame())
+            {
+                Console.WriteLine("Match nul !");
+                break;
+            }
+
+            PlayerTurn(player2, gameGrid);
+            if (gameGrid.CheckForWin(player2.Symbol))
+            {
+                player2.AnnounceWinner();
+                break;
+            }
+            else if (gameGrid.DrawGame())
+            {
+                Console.WriteLine("Match nul !!");
+                break;
+            }
+
+            Console.Clear();
+        }
+
     }
 
-    PlayerTurn(player2, positionRowSymbolO, positionColSymbolO, player2Symbol);
-    if (CheckForWin(player2Symbol))
-    {
-        Console.WriteLine($"\nBravo {player2} vous avez gagné !!!");
-        break;
-    }
-    Console.Clear();
-}
+        static void PlayerTurn(Player player, Grid grid)
+        {
+            Console.WriteLine($"\n {player.Name} , veuillez indiquer le numéro de ligne où placer votre symbole");
+            int row  = GetPlayerInput();
 
+            Console.WriteLine("\nVeuillez maintenant indiquer le numéro de la colonne où placer votre symbole");
+            int col = GetPlayerInput();
 
-static void DisplayBoard(char[,] board) {
+            while (!grid.PlaceSymbolOnGrid(row, col, player.Symbol))
+            {
+                Console.WriteLine($"\n{player.Name}, veuillez indiquer le numéro de ligne où placer votre symbole");
+                row = GetPlayerInput();
 
-    Console.WriteLine("\n\n   1  |  2  |  3  ");
-    Console.WriteLine();
-    Console.WriteLine($"1  {board[0,0]}  |  {board[0,1]}  |  {board[0,2]}");
-    Console.WriteLine("      |     |    ");
-    Console.WriteLine("  ----+-----+----");
-    Console.WriteLine("      |     |    ");
-    Console.WriteLine($"2  {board[1, 0]}  |  {board[1, 1]}  |  {board[1, 2]}");
-    Console.WriteLine("      |     |    ");
-    Console.WriteLine("  ----+-----+----");
-    Console.WriteLine($"3  {board[2, 0]}  |  {board[2, 1]}  |  {board[2, 2]}");
-    Console.WriteLine("      |     |    ");
+                Console.WriteLine($"\n{player.Name}, veuillez indiquer le numéro de la colonne où placer votre symbole");
+                col = GetPlayerInput();
+
+            }
+        }
+
+        static int GetPlayerInput()
+        {
+            string input = Console.ReadLine();
+            return int.Parse(input);
+
+        }
     
 }
-
-bool CheckForWin(char playerSymbol)
-{
-    for (int i = 0; i < 3; i++)
-    {
-        if (boardGame[i, 0] == playerSymbol && boardGame[i, 1] == playerSymbol && boardGame[i, 2] == playerSymbol)
-            return true;
-
-        if (boardGame[0, i] == playerSymbol && boardGame[1, i] == playerSymbol && boardGame[2, i] == playerSymbol)
-            return true;
-    }
-
-    if (boardGame[0, 0] == playerSymbol && boardGame[1, 1] == playerSymbol && boardGame[2, 2] == playerSymbol)
-        return true;
-
-    if (boardGame[2, 0] == playerSymbol && boardGame[1, 1] == playerSymbol && boardGame[0, 2] == playerSymbol)
-        return true;
-
-    return false;
-}
-
-void PlayerTurn(string playerName, int playerSymbolX, int playerSymbolY, char playerSymbolDisplay)
-{
-    Console.WriteLine($"\n {playerName} , veuillez indiquer le numéro de ligne où placer votre symbole");
-    playerSymbolX = GetPlayerInput();
-
-    Console.WriteLine("\nVeuillez maintenant indiquer le numéro de la colonne où placer votre symbole");
-    playerSymbolY = GetPlayerInput();
-
-    if (boardGame[playerSymbolX - 1, playerSymbolY - 1] != '.')
-    {
-        Console.WriteLine("\nVous ne pouvez pas choisir cette case");
-
-        Console.WriteLine("\n\nJoueur 1, veuillez indiquer le numéro de ligne où placer votre symbole");
-        playerSymbolX = GetPlayerInput();
-
-        Console.WriteLine("\nJoueur 1, veuillez indiquer le numéro de la colonne où placer votre symbole");
-        playerSymbolY = GetPlayerInput();
-    }
-    boardGame[playerSymbolX - 1, playerSymbolY - 1] = playerSymbolDisplay;
-    Console.Clear();
-
-    DisplayBoard(boardGame);
-
-}
-
-int GetPlayerInput()
-{
-    string input = Console.ReadLine();
-    return int.Parse(input);
-
-}
-
